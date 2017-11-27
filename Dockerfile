@@ -1,4 +1,4 @@
-FROM openjdk:8
+FROM java:8
 
 # Setup useful environment variables
 ENV CONF_HOME     /var/atlassian/confluence
@@ -11,6 +11,7 @@ ENV TEMP_PATH     /temp/jira
 RUN mkdir -p  /temp/jira
 COPY sources.list.163                            /temp/jira/sources.list.163
 COPY atlassian-extras-decoder-v2-3.2.jar         /temp/jira/atlassian-extras-decoder-v2-3.2.jar
+#COPY atlassian-extras-3.2.jar                    /temp/jira/atlassian-extras-3.2.jar
 
 # Install Atlassian Confluence and hepler tools and setup initial home
 # directory structure.
@@ -18,14 +19,14 @@ RUN set -x \
     && mv                      /etc/apt/sources.list /etc/apt/sources.list.back \
     && cp                      "${TEMP_PATH}/sources.list.163" /etc/apt/sources.list \
     && apt-get update --quiet \
-    && apt-get install --quiet --yes --no-install-recommends libtcnative-1 xmlstarlet \
+    && apt-get install --quiet --yes --no-install-recommends  --allow-unauthenticated libtcnative-1 xmlstarlet \
     && apt-get clean \
     && mkdir -p                "${CONF_HOME}" \
     && chmod -R 700            "${CONF_HOME}" \
     && chown daemon:daemon     "${CONF_HOME}" \
     && mkdir -p                "${CONF_INSTALL}/conf" \
-    && curl -Ls                "http://172.17.0.7:8080/download/atlassian-confluence-${CONF_VERSION}.tar.gz" | tar -xz --directory "${CONF_INSTALL}" --strip-components=1 --no-same-owner \
-    && curl -Ls                "http://172.17.0.7:8080/download/mysql-connector-java-5.1.44.tar.gz" | tar -xz --directory "${CONF_INSTALL}/confluence/WEB-INF/lib" --strip-components=1 --no-same-owner "mysql-connector-java-5.1.44/mysql-connector-java-5.1.44-bin.jar" \
+    && curl -Ls                "http://172.17.0.8:8080/download/atlassian-confluence-${CONF_VERSION}.tar.gz" | tar -xz --directory "${CONF_INSTALL}" --strip-components=1 --no-same-owner \
+    && curl -Ls                "http://172.17.0.8:8080/download/mysql-connector-java-5.1.44.tar.gz" | tar -xz --directory "${CONF_INSTALL}/confluence/WEB-INF/lib" --strip-components=1 --no-same-owner "mysql-connector-java-5.1.44/mysql-connector-java-5.1.44-bin.jar" \
     && chmod -R 700            "${CONF_INSTALL}/conf" \
     && chmod -R 700            "${CONF_INSTALL}/temp" \
     && chmod -R 700            "${CONF_INSTALL}/logs" \
@@ -50,8 +51,7 @@ RUN set -x \
 
 #Hack
 RUN set -x \
-   && rm -rf                  "${CONF_INSTALL}/confluence/WEB-INF/lib/atlassian-extras-decoder-v2-3.2.jar" \
-   && cp                      "${TEMP_PATH}/atlassian-extras-decoder-v2-3.2.jar" "${CONF_INSTALL}/confluence/WEB-INF/lib/atlassian-extras-decoder-v2-3.2.jar"
+   && cp                      "${TEMP_PATH}/atlassian-extras-decoder-v2-3.2.jar" "${CONF_INSTALL}/confluence/WEB-INF/lib/"
 
 # Use the default unprivileged account. This could be considered bad practice
 # on systems where multiple processes end up being executed by 'daemon' but
